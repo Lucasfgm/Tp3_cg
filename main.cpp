@@ -125,9 +125,10 @@ void update(int value) {
 
     // Verifica se algum jogador venceu
     checkVictory();
-
-    glutPostRedisplay();
     glutTimerFunc(16, update, 0); // Aproximadamente 60 FPS
+    
+    glutPostRedisplay();
+    
 }
 
 void handleKeysDown(unsigned char key, int x, int y) {

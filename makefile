@@ -10,11 +10,18 @@
 MAIN = main
 OBJECTS	= $(MAIN).o
 FLAGS = -Wall -Wextra -std=c++17 -pedantic-errors
-OPENGL_FLAG = -lGL -lGLU -lglut
 MATH = -lm
 DEBUG = -g
 CC = g++
 
+ifeq ($(OS),Windows_NT)
+	OPENGL_FLAG = -lopengl32 -lglu32 -lfreeglut
+	RM = del
+else
+	OPENGL_FLAG = -lGL -lGLU -lglut
+	RM = rm -rf
+
+endif
 # regra de compilação do projeto completo
 all: main.exe
 
@@ -29,8 +36,8 @@ main.o: $(MAIN).cpp
 # regra para limpeza do projeto (excluir arquivos .o e .exe). 
 # (OBS.: SO windows)
 clean:
-	rm -rf $(OBJECTS)
-	rm -rf *.exe
+	$(RM)  $(OBJECTS)
+	$(RM) *.exe
 
 # regra para compilar todo o projeto (se necessário) e, posteriormente, executar
 # (OBS.: SO windows)

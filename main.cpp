@@ -1,5 +1,6 @@
 #include <GL/glut.h>
 #include <iostream>
+#include <string>
 
 // Tamanho da janela
 const int width = 800;
@@ -30,123 +31,212 @@ bool bar1Up = false, bar1Down = false;
 bool bar2Up = false, bar2Down = false;
 
 // Condições de vitória e dificuldade
-const int maxPoints = 5;  // Pontuação máxima para vencer
-int difficultyLevel = 2;  // Nível de dificuldade (1: Fácil, 2: Médio, 3: Difícil)
+const int maxPoints = 5; // Pontuação máxima para vencer
+int difficultyLevel = 2; // Nível de dificuldade (1: Fácil, 2: Médio, 3: Difícil)
+
+// Estado do jogo
+enum GameState { MENU, PLAYING, GAME_OVER };
+GameState currentState = MENU;
+std::string victoryMessage = "";
 
 // Função para ajustar a dificuldade
-void setDifficulty(int level) {
+void setDifficulty(int level)
+{
     difficultyLevel = level;
-    switch(level) {
-        case 1: // Fácil
-            ballXSpeed = 3.0f;
-            ballYSpeed = 3.0f;
-            barHeight = 150.0f;
-            break;
-        case 2: // Médio
-            ballXSpeed = 5.0f;
-            ballYSpeed = 5.0f;
-            barHeight = 100.0f;
-            break;
-        case 3: // Difícil
-            ballXSpeed = 7.0f;
-            ballYSpeed = 7.0f;
-            barHeight = 75.0f;
-            break;
-        default:
-            ballXSpeed = 5.0f;
-            ballYSpeed = 5.0f;
-            barHeight = 100.0f;
-            break;
+    switch (level)
+    {
+    case 1: // Fácil
+        ballXSpeed = 3.0f;
+        ballYSpeed = 3.0f;
+        barHeight = 150.0f;
+        break;
+    case 2: // Médio
+        ballXSpeed = 5.0f;
+        ballYSpeed = 5.0f;
+        barHeight = 100.0f;
+        break;
+    case 3: // Difícil
+        ballXSpeed = 7.0f;
+        ballYSpeed = 7.0f;
+        barHeight = 75.0f;
+        break;
+    default:
+        ballXSpeed = 5.0f;
+        ballYSpeed = 5.0f;
+        barHeight = 100.0f;
+        break;
     }
 }
 
 // Função que verifica se algum jogador venceu
-void checkVictory() {
-    if (score1 >= maxPoints) {
-        std::cout << "Jogador 1 venceu!" << std::endl;
-        exit(0); // Termina o jogo
-    } else if (score2 >= maxPoints) {
-        std::cout << "Jogador 2 venceu!" << std::endl;
-        exit(0); // Termina o jogo
+void checkVictory()
+{
+    if (score1 >= maxPoints)
+    {
+        victoryMessage = "Jogador 1 venceu!";
+        currentState = GAME_OVER;
+    }
+    else if (score2 >= maxPoints)
+    {
+        victoryMessage = "Jogador 2 venceu!";
+        currentState = GAME_OVER;
     }
 }
 
-void display() {
+// Função que desenha o texto na tela
+void drawText(float x, float y, std::string text)
+{
+    glRasterPos2f(x, y);
+    for (char c : text)
+    {
+        glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, c);
+    }
+}
+
+void display()
+{
     glClear(GL_COLOR_BUFFER_BIT);
 
-    // Desenha o placar
-    glRasterPos2f(width / 2 - 50, height - 50);
-    glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, '0' + score1);
-    glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, ' ');
-    glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, '-');
-    glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, ' ');
-    glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, '0' + score2);
+    if (currentState == MENU)
+    {
+        // Desenha o menu
+        drawText(width / 2 - 100, height / 2 + 50, "Bem-vindo ao Pong!");
+        drawText(width / 2 - 100, height / 2, "Pressione 1 para Facil");
+        drawText(width / 2 - 100, height / 2 - 30, "Pressione 2 para Medio");
+        drawText(width / 2 - 100, height / 2 - 60, "Pressione 3 para Dificil");
+    }
+    else if (currentState == PLAYING)
+    {
+        // Desenha o placar
+        drawText(width / 2 - 50, height - 50, std::to_string(score1) + " - " + std::to_string(score2));
 
-    // Desenha as barras
-    glRectf(10, bar1Y, 10 + barWidth, bar1Y + barHeight);
-    glRectf(width - 30, bar2Y, width - 30 + barWidth, bar2Y + barHeight);
+        // Desenha as barras
+        glRectf(10, bar1Y, 10 + barWidth, bar1Y + barHeight);
+        glRectf(width - 30, bar2Y, width - 30 + barWidth, bar2Y + barHeight);
 
-    // Desenha a bola
-    glRectf(ballX, ballY, ballX + ballSize, ballY + ballSize);
+        // Desenha a bola
+        glRectf(ballX, ballY, ballX + ballSize, ballY + ballSize);
+    }
+    else if (currentState == GAME_OVER)
+    {
+        // Desenha a mensagem de vitória
+        drawText(width / 2 - 100, height / 2, victoryMessage);
+        drawText(width / 2 - 100, height / 2 - 50, "Pressione Enter para voltar ao menu");
+    }
 
     glutSwapBuffers();
 }
 
-void update(int value) {
-    // Movimenta as barras
-    if (bar1Up && bar1Y + barHeight < height) bar1Y += barSpeed;
-    if (bar1Down && bar1Y > 0) bar1Y -= barSpeed;
-    if (bar2Up && bar2Y + barHeight < height) bar2Y += barSpeed;
-    if (bar2Down && bar2Y > 0) bar2Y -= barSpeed;
+void update(int value)
+{
+    if (currentState == PLAYING)
+    {
+        // Movimenta as barras
+        if (bar1Up && bar1Y + barHeight < height)
+            bar1Y += barSpeed;
+        if (bar1Down && bar1Y > 0)
+            bar1Y -= barSpeed;
+        if (bar2Up && bar2Y + barHeight < height)
+            bar2Y += barSpeed;
+        if (bar2Down && bar2Y > 0)
+            bar2Y -= barSpeed;
 
-    // Movimenta a bola
-    ballX += ballXSpeed;
-    ballY += ballYSpeed;
+        // Movimenta a bola
+        ballX += ballXSpeed;
+        ballY += ballYSpeed;
 
-    // Colisões com as bordas superiores e inferiores
-    if (ballY <= 0 || ballY + ballSize >= height) ballYSpeed = -ballYSpeed;
+        // Colisões com as bordas superiores e inferiores
+        if (ballY <= 0 || ballY + ballSize >= height)
+            ballYSpeed = -ballYSpeed;
 
-    // Colisões com as barras
-    if ((ballX <= 30 && ballY + ballSize >= bar1Y && ballY <= bar1Y + barHeight) ||
-        (ballX + ballSize >= width - 30 && ballY + ballSize >= bar2Y && ballY <= bar2Y + barHeight)) {
-        ballXSpeed = -ballXSpeed;
+        // Colisões com as barras
+        if ((ballX <= 30 && ballY + ballSize >= bar1Y && ballY <= bar1Y + barHeight) ||
+            (ballX + ballSize >= width - 30 && ballY + ballSize >= bar2Y && ballY <= bar2Y + barHeight))
+        {
+            ballXSpeed = -ballXSpeed;
+        }
+
+        // Pontuação
+        if (ballX <= 0)
+        {
+            score2++;
+            ballX = width / 2;
+            ballY = height / 2;
+        }
+        else if (ballX + ballSize >= width)
+        {
+            score1++;
+            ballX = width / 2;
+            ballY = height / 2;
+        }
+
+        // Verifica se algum jogador venceu
+        checkVictory();
     }
-
-    // Pontuação
-    if (ballX <= 0) {
-        score2++;
-        ballX = width / 2;
-        ballY = height / 2;
-    } else if (ballX + ballSize >= width) {
-        score1++;
-        ballX = width / 2;
-        ballY = height / 2;
-    }
-
-    // Verifica se algum jogador venceu
-    checkVictory();
     glutTimerFunc(16, update, 0); // Aproximadamente 60 FPS
-    
+
     glutPostRedisplay();
-    
 }
 
-void handleKeysDown(unsigned char key, int x, int y) {
-    if (key == 'w') bar1Up = true;
-    if (key == 's') bar1Down = true;
-    if (key == 'o') bar2Up = true;
-    if (key == 'l') bar2Down = true;
+void handleKeysDown(unsigned char key, int x, int y)
+{
+    if (currentState == PLAYING)
+    {
+        if (key == 'w')
+            bar1Up = true;
+        if (key == 's')
+            bar1Down = true;
+        if (key == 'o')
+            bar2Up = true;
+        if (key == 'l')
+            bar2Down = true;
+    }
+    else if (currentState == MENU)
+    {
+        if (key == '1')
+        {
+            setDifficulty(1);
+            currentState = PLAYING;
+        }
+        else if (key == '2')
+        {
+            setDifficulty(2);
+            currentState = PLAYING;
+        }
+        else if (key == '3')
+        {
+            setDifficulty(3);
+            currentState = PLAYING;
+        }
+    }
+    else if (currentState == GAME_OVER && key == 13) // Enter para voltar ao menu
+    {
+        currentState = MENU;
+        score1 = 0;
+        score2 = 0;
+        ballX = width / 2;
+        ballY = height / 2;
+    }
 }
 
-void handleKeysUp(unsigned char key, int x, int y) {
-    if (key == 'w') bar1Up = false;
-    if (key == 's') bar1Down = false;
-    if (key == 'o') bar2Up = false;
-    if (key == 'l') bar2Down = false;
+void handleKeysUp(unsigned char key, int x, int y)
+{
+    if (currentState == PLAYING)
+    {
+        if (key == 'w')
+            bar1Up = false;
+        if (key == 's')
+            bar1Down = false;
+        if (key == 'o')
+            bar2Up = false;
+        if (key == 'l')
+            bar2Down = false;
+    }
 }
 
 // Função para evitar o redimensionamento da janela
-void reshape(int w, int h) {
+void reshape(int w, int h)
+{
     glutReshapeWindow(width, height);
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
@@ -154,18 +244,17 @@ void reshape(int w, int h) {
     glutPostRedisplay();
 }
 
-void Init(int argc, char** argv) {
+void Init(int argc, char **argv)
+{
     glutInit(&argc, argv);
     glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB);
     glutInitWindowSize(width, height);
     glutCreateWindow("TP3 - Jogo Pong");
 }
 
-int main(int argc, char** argv) {
+int main(int argc, char **argv)
+{
     Init(argc, argv);
-
-    // Ajusta o nível de dificuldade (1: Fácil, 2: Médio, 3: Difícil)
-    setDifficulty(3);
 
     glutDisplayFunc(display);
     glutTimerFunc(16, update, 0);

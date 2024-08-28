@@ -48,22 +48,22 @@ void setDifficulty(int level)
     case 1: // Fácil
         ballXSpeed = 3.0f;
         ballYSpeed = 3.0f;
-        barHeight = 150.0f;
+        barHeight = 175.0f;
         break;
     case 2: // Médio
-        ballXSpeed = 5.0f;
-        ballYSpeed = 5.0f;
-        barHeight = 100.0f;
+        ballXSpeed = 4.0f;
+        ballYSpeed = 4.0f;
+        barHeight = 125.0f;
         break;
     case 3: // Difícil
-        ballXSpeed = 7.0f;
-        ballYSpeed = 7.0f;
-        barHeight = 75.0f;
+        ballXSpeed = 6.0f;
+        ballYSpeed = 6.0f;
+        barHeight = 100.0f;
         break;
     default:
-        ballXSpeed = 5.0f;
-        ballYSpeed = 5.0f;
-        barHeight = 100.0f;
+        ballXSpeed = 4.0f;
+        ballYSpeed = 4.0f;
+        barHeight = 125.0f;
         break;
     }
 }
